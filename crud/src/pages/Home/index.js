@@ -7,6 +7,11 @@ import {
   ConteudoTitulo,
   BotaoAcao,
   ButtonSuccess,
+  ButtonPrimary,
+  ButtonWarning,
+  ButtonDanger,
+  AlertDanger,
+  AlertSuccess,
   Table,
   Titulo,
 } from './styles';
@@ -14,10 +19,41 @@ import {
 export const Home = () => {
   const [data, setData] = useState([]);
 
+  const [status, setStatus] = useState({
+    type: '',
+    mensagem: '',
+  });
+
   const getProdutos = async () => {
     fetch('http://localhost:19631/api/produtos')
       .then((response) => response.json())
       .then((responseJson) => setData(responseJson));
+  };
+
+  const apagarProduto = (id) => {
+    fetch('http://localhost:19631/api/produtos' + id, {
+      method: 'DELETE',
+    })
+      .then((response) => response.json())
+      .then((responseJson) => {
+        if (!responseJson.success) {
+          setStatus({
+            type: 'erro',
+            mensagem: responseJson.errors,
+          });
+        } else {
+          setStatus({
+            type: 'sucess',
+            mensagem: 'Deletado com Sucesso',
+          });
+        }
+      })
+      .catch(() => {
+        setStatus({
+          type: 'erro',
+          mensagem: 'Produto não deletado com sucesso, tente mais tarde!',
+        });
+      });
   };
 
   useEffect(() => {
@@ -34,6 +70,18 @@ export const Home = () => {
           </Link>
         </BotaoAcao>
       </ConteudoTitulo>
+
+      {status.type === 'erro' ? (
+        <AlertDanger>{status.mensagem}</AlertDanger>
+      ) : (
+        ''
+      )}
+      {status.type === 'sucess' ? (
+        <AlertSuccess>{status.mensagem}</AlertSuccess>
+      ) : (
+        ''
+      )}
+
       <Table>
         <thead>
           <tr>
@@ -49,7 +97,17 @@ export const Home = () => {
               <td>{produto.id}</td>
               <td>{produto.nome}</td>
               <td>{produto.descricao}</td>
-              <td>Visualizar Editar Apagar</td>
+              <td>
+                <Link to={'/visualizar/' + produto.id}>
+                  <ButtonPrimary>Visualizar</ButtonPrimary>
+                </Link>{' '}
+                <Link to={'/editar/' + produto.id}>
+                  <ButtonWarning>Editar</ButtonWarning>
+                </Link>
+                <Link onClick={() => apagarProduto(produto.id)}>
+                  <ButtonDanger>Apagar</ButtonDanger>
+                </Link>
+              </td>
             </tr>
           ))}
         </tbody>

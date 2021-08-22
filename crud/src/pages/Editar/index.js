@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+
 import {
   Container,
   ConteudoForm,
@@ -6,54 +8,56 @@ import {
   Titulo,
   BotaoAcao,
   ButtonInfo,
-  AlertSuccess,
-  AlertDanger,
   Form,
   Label,
   Input,
-  ButtonSuccess,
+  AlertSuccess,
+  AlertDanger,
+  ButtonWarning,
 } from './styles';
 
-import { Link } from 'react-router-dom';
-
-export const Cadastrar = () => {
-  const [Produto, setProduto] = useState({
-    Nome: '',
-    Descricao: '',
-  });
+export const Editar = (props) => {
+  // Pegando o valor que vem da url.
+  const [id] = useState(props.match.params.id);
+  const [nome, setNome] = useState('');
+  const [descricao, setDescricao] = useState('');
 
   const [status, setStatus] = useState({
     type: '',
     mensagem: '',
   });
 
-  const valorInput = (e) =>
-    setProduto({ ...Produto, [e.target.name]: e.target.value });
+  //Carrega antes da pagina,sempre bota um array[], para evitar o loot infinito!
+  useEffect(() => {
+    const getProduto = async () => {
+      await fetch('http://localhost:19631/api/produtos/' + id)
+        .then((response) => response.json())
+        .then((responseJson) => {
+          setNome(responseJson.nome);
+          setDescricao(responseJson.descricao);
+        });
+    };
+    getProduto();
+  }, [id]);
 
-  const cadProduto = async (e) => {
-    e.preventDefault(); //Evita carregar a pagina.
+  const editProduto = async (e) => {
+    //método que não deixa carregar a pagina.
+    //http://localhost:19631/api/produtos/adc308f8-8f1e-4b1d-b3e7-2f71086f6443
+    e.preventDefault();
 
-    //console.log('Teste:', Produto.Nome, '-', Produto.Descricao);
-
-    //const valorJson = JSON.stringify({ Produto });
-    const valorJson = { Nome: Produto.Nome, Descricao: Produto.Descricao };
-
-    console.log('valor convertido: ', valorJson);
-
-    await fetch('http://localhost:19631/api/produtos', {
-      method: 'POST',
+    await fetch('http://localhost:19631/api/produtos/' + id, {
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
       },
       body: JSON.stringify({
-        Nome: Produto.Nome,
-        Descricao: Produto.Descricao,
+        Id: id,
+        Nome: nome,
+        Descricao: descricao,
       }),
     })
       .then((response) => response.json())
       .then((responseJson) => {
-        console.log('valor cadastrado:', responseJson);
         if (!responseJson.success) {
           setStatus({
             type: 'erro',
@@ -66,12 +70,10 @@ export const Cadastrar = () => {
           });
         }
       })
-      .catch((error) => {
-        //console.log(error);
-
+      .catch(() => {
         setStatus({
           type: 'erro',
-          mensagem: 'Produto não Cadastrado, tente mais tarde.',
+          mensagem: 'Produto não editado com sucesso, tente mais tarde!',
         });
       });
   };
@@ -80,7 +82,7 @@ export const Cadastrar = () => {
     <Container>
       <ConteudoForm>
         <ConteudoTitulo>
-          <Titulo>Cadastrar</Titulo>
+          <Titulo>Editar</Titulo>
           <BotaoAcao>
             <Link to="/">
               <ButtonInfo>Listar</ButtonInfo>
@@ -98,26 +100,27 @@ export const Cadastrar = () => {
         ) : (
           ''
         )}
-        <Form onSubmit={cadProduto}>
+
+        <Form onSubmit={editProduto}>
           <Label>Nome: </Label>
           <Input
             type="text"
             name="Nome"
+            value={nome}
             placeholder="Nome do produto"
-            onChange={valorInput}
+            onChange={(e) => setNome(e.target.value)}
           />
-          <br />
-          <br />
+
           <Label>Descrição: </Label>
           <Input
             type="textArea"
             name="Descricao"
+            value={descricao}
             placeholder="Descrição do produto"
-            onChange={valorInput}
+            onChange={(e) => setDescricao(e.target.value)}
           />
-          <br />
-          <br />
-          <ButtonSuccess type="submit">Cadastrar</ButtonSuccess>
+
+          <ButtonWarning type="submit">Editar</ButtonWarning>
         </Form>
       </ConteudoForm>
     </Container>
