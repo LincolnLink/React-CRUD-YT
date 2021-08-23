@@ -31,7 +31,7 @@ export const Home = () => {
   };
 
   const apagarProduto = (id) => {
-    fetch('http://localhost:19631/api/produtos' + id, {
+    fetch('http://localhost:19631/api/produtos/' + id, {
       method: 'DELETE',
     })
       .then((response) => response.json())
@@ -46,12 +46,13 @@ export const Home = () => {
             type: 'sucess',
             mensagem: 'Deletado com Sucesso',
           });
+          getProdutos();
         }
       })
       .catch(() => {
         setStatus({
           type: 'erro',
-          mensagem: 'Produto não deletado com sucesso, tente mais tarde!',
+          mensagem: 'Produto não apagado com sucesso, tente mais tarde!',
         });
       });
   };
@@ -103,8 +104,8 @@ export const Home = () => {
                 </Link>{' '}
                 <Link to={'/editar/' + produto.id}>
                   <ButtonWarning>Editar</ButtonWarning>
-                </Link>
-                <Link onClick={() => apagarProduto(produto.id)}>
+                </Link>{' '}
+                <Link to="#" onClick={() => apagarProduto(produto.id)}>
                   <ButtonDanger>Apagar</ButtonDanger>
                 </Link>
               </td>
